@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Benzerlik Analizi</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Logo Benzerlik Analizi</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="file-input">Logo Dosyası:</label>
+            <input type="file" name="file" id="file-input" accept="image/*" required>
+            <label for="threshold">Eşik Değeri (0-100% arası):</label>
+            <input type="number" name="threshold" id="threshold" step="1" min="0" max="100" value="80" required>
+            <button type="submit">Analiz Et</button>
+        </form>
+        <div id="test-logo" class="test-logo"></div>
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/upload/', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            const testLogoDiv = document.getElementById('test-logo');
+            const resultsDiv = document.getElementById('results');
+            testLogoDiv.innerHTML = '';
+            resultsDiv.innerHTML = '';
+
+            if (data.error) {
+                resultsDiv.innerHTML = `<p class="error">${data.error}</p>`;
+                return;
+            }
+
+            // Test logosunu göster
+            testLogoDiv.innerHTML = `
+                <h2>Yüklenen Logo:</h2>
+                <img src="${data.test_logo_url}" alt="Test Logo" width="150">
+            `;
+
+            if (data.results.length === 0) {
+                resultsDiv.innerHTML = `<p class="info">Belirtilen eşik değerin üzerinde benzer logo bulunamadı.</p>`;
+                return;
+            }
+
+            // Benzer logoları göster
+            data.results.forEach((result, index) => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
+                    <p>${index + 1}. Benzerlik: ${(result.similarity * 100).toFixed(2)}%</p>
+                    <img src="${result.path}" alt="Logo" width="100">
+                `;
+                resultsDiv.appendChild(div);
+            });
+        });
+    </script>
+</body>
+</html>
