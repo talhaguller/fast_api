@@ -1,15 +1,17 @@
-# Temel bir Python imajını kullan
-FROM python:3.9-slim
+# Python 3.12-slim imajını temel al
+FROM python:3.12-slim
 
-# Çalışma dizinini oluştur ve ayarla
+# Çalışma dizinini ayarla
 WORKDIR /app
 
-# Bağımlılıkları yükle
+# Gereksinim dosyasını kopyala
 COPY requirements.txt .
+
+# Bağımlılıkları yükle
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Proje dosyalarını kopyala
 COPY . .
 
-# Uygulamayı çalıştır
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
+# Uvicorn ile FastAPI'yi çalıştır
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
